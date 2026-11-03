@@ -82,22 +82,51 @@ const  pointRandomSize = new Float32Array(POINT_COUNT);
 
 function createPointData() { // called during initialization to fill the arrays with data.
     for (let i = 0; i < POINT_COUNT; i++) {
-           // Each point has two coordinates and two velocities.  Velocity number k
-           // tells how fast coordinate number k changes in pixels per frame.
-        pointCoords[2*i] = canvas.width * Math.random();  // x-coordinate of point
-        pointCoords[2*i+1] = canvas.height * Math.random();  // y-coordinate of point
-        let  randomVelocity = 1 + 3*Math.random();
-        let  randomAngle = 2*Math.PI * Math.random();
-        pointVelocities[2*i] = randomVelocity * Math.cos(randomAngle);
-        pointVelocities[2*i+1] = randomVelocity * Math.sin(randomAngle);
+        pointRandomSize[i] = 16 + 48 * Math.random();
+    }
+    for (let i = 0; i < POINT_COUNT; i++) {
+        let valid = false;
+        let x, y;
+        let attempts = 0;
+        
+        let radiusCurrent = pointRandomSize[i] / 2;
+
+        while (!valid && attempts < 1000) {
+            x = radiusCurrent + (canvas.width - 2 * radiusCurrent) * Math.random();
+            y = radiusCurrent + (canvas.height - 2 * radiusCurrent) * Math.random();
+            valid = true;
+
+            for (let j = 0; j < i; j++) {
+                let radiusExisting = pointRandomSize[j] / 2;
+                
+                let minDistance = radiusCurrent + radiusExisting;
+                let minDistSq = minDistance * minDistance; 
+
+                let dx = x - pointCoords[2 * j];
+                let dy = y - pointCoords[2 * j + 1];
+                let distSq = dx * dx + dy * dy;
+
+                if (distSq < minDistSq) {
+                    valid = false;
+                    break;
+                }
+            }
+            attempts++;
+        }
+
+        pointCoords[2 * i] = x;
+        pointCoords[2 * i + 1] = y;
+
+        // Generate velocities
+        let randomVelocity = 1 + 3 * Math.random();
+        let randomAngle = 2 * Math.PI * Math.random();
+        pointVelocities[2 * i] = randomVelocity * Math.cos(randomAngle);
+        pointVelocities[2 * i + 1] = randomVelocity * Math.sin(randomAngle);
     }
     for (let i = 0; i < 3 * POINT_COUNT; i++) {
            // The array contains color components, with three numbers per vertex.
            // The color components are just random numbers in the range zero to 1.
         pointRandomColors[i] = Math.random();
-    }
-    for (let i = 0; i < POINT_COUNT; i++) {
-        pointRandomSize[i] = 16 + 48 * Math.random();
     }
 }
 
